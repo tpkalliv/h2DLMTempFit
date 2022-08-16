@@ -7,7 +7,7 @@ import sys;
 sys.path.append("JPyPlotRatio");
 import JPyPlotRatio
 
-fload = ROOT.TFile("outputs/CorrFit_2022.root","read"); #Opens figs
+fload = ROOT.TFile("output/h2dCorrFit.root","read"); #Opens figs
 
 dataTypePlotParams = 	[
 							{'plotType':'data','color':'k','fmt':'o','markersize':2.0},
@@ -22,7 +22,7 @@ xtitle = ["$\\Delta\\varphi (\\mathrm{rad})$"];
 ytitle = ["$\\frac{1}{N_{\\mathrm{trig}}}\\frac{\\mathrm{d}N^{\\mathrm{pair}}}{\\mathrm{d}\\Delta\\varphi}$"];
 nrow = 1;
 ncol = 1;
-
+TypeName =["Signal (0--0.1\%)", "Fit","$FY_{\\mathrm{LM}} + G$", "$G(1+2v_{2,2}cos(2\\Delta\\varphi))$ \n $+ FY_{\\mathrm{LM,min}}$","$G(1+2v_{3,3}cos(3\\Delta\\varphi))$ \n $+ FY_{\\mathrm{LM,min}}$"];
 '''
 # Limits the panel 
 xlimits = {0:(-1.4,4.5)};
@@ -40,17 +40,17 @@ plot = JPyPlotRatio.JPyPlotRatio(panels=(1,1),
 	legendPanel=0,
 	legendLoc=(0.2,1.12),legendSize=11,xlabel=xtitle[0],ylabel=ytitle[0]); # x- and y-coordinate labels
 
-fig = fload.Get("HM;1");
-fit = fload.Get("fFit;49");
-fit_v2 = fload.Get("fit_v2");
-fit_v3 = fload.Get("fit_v3");
-fit_G = fload.Get("F*Y+G;49");
+fig = fload.Get("hDphiHM;1"); # HM
+fit = fload.Get("fFit_best"); # fit
+fit_v2 = fload.Get("fit_s_v2;1");# v22
+fit_v3 = fload.Get("fit_s_v3;1"); # v33
+fit_G = fload.Get("hY_a_G;1"); # 
 
-data = plot.Add(0, fig, **dataTypePlotParams[0], label='signal');
-data_fit = plot.Add(0, fit, **dataTypePlotParams[1], label='fit');
-data_fit_v2 = plot.Add(0, fit_v2, **dataTypePlotParams[3], label='v2');
-data_fit_v3 = plot.Add(0, fit_v3, **dataTypePlotParams[4], label='v3');
-data_fit_G = plot.Add(0, fit_G, **dataTypePlotParams[5], label='F*Y+G');
+data = plot.Add(0, fig, **dataTypePlotParams[0], label=TypeName[0]);
+data_fit = plot.Add(0, fit, **dataTypePlotParams[1], label=TypeName[1]);
+data_fit_v2 = plot.Add(0, fit_v2, **dataTypePlotParams[3], label=TypeName[2]);
+data_fit_v3 = plot.Add(0, fit_v3, **dataTypePlotParams[4], label=TypeName[3]);
+data_fit_G = plot.Add(0, fit_G, **dataTypePlotParams[2], label=TypeName[4]);
 
 fload.Close();
 
