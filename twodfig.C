@@ -38,8 +38,9 @@ void twodfig() {
 
     TFile* fOut = new TFile ("input/fout_long_range_correlation.root", "recreate");
 
-    hDphiLM->Write("hDphiLM_1");
+    c->Write("hDphiLM_1");
     hDphiHM->Write("hDphiHM_1");
+    double YM_min = hDphiLM->GetBinConent(hDphiLM->GetBinCenter(0.));
 
    
 

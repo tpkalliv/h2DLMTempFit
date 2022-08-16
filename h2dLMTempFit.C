@@ -7,17 +7,16 @@
 #include "TLegend.h"
 
 
- // Initializing Chi2 function
- Double_t Chi2(TH1D *hY_a, TF1 *fFit, Double_t *err);
-
-
 /*
 	Program loads two data sets and finds the best fit for them using Chi2.
 	Outputs Chi2 statistical value and also parameters from the best fit.
 */
 
+
+Double_t Chi2(TH1D *hY_a, TF1 *fFit, Double_t *err);
+
+// Initializations and constants
 TF1* fFit_best;
-	// Initializings 
 const int numbOfFVar = 100; // Number of F values
 Double_t factorF[numbOfFVar];
 double F_min = 1;
@@ -25,32 +24,29 @@ double F_max = 4;
 TString errNames[] = {"fit_G_err","fit_V1_err","fit_V2_err ","fit_V3_err ","fit_V4_err","fit_V5_err", "hist_err"};
 Double_t err[sizeof(errNames)];
 TString paramNames[] = {"G const", "v11", "v22", "v33", "v44", "v55", "F"};
+Int_t NH = 5;
 
 void h2dLMTempFit() {
 
-
+	// F factor values
 	Double_t stepsize = (F_max-F_min)/(double) 100;
 	for (int i = 0; i <= numbOfFVar; i++) factorF[i] = 1 + (i*stepsize);	
 
 	Double_t chi2_best;
  	Double_t factorF_best;
  	Int_t indexVal;
-	Int_t NH = 5;
  	TH1D* hY_a[numbOfFVar];
 	TF1 *fitvn[NH];
 	TH1D* hY_a_G;
 	Double_t vn[NH];
 	Double_t vnError[NH];
-
 	Double_t params[sizeof(paramNames)];
 
- 	// Opens data 
+ 	// Loading data
 	TFile *fIn = new TFile ("input/fout_long_range_correlation.root", "read");
 	
 	TH1D* hY; 
 	hY = (TH1D*) fIn->Get("hDphiHM_1");
-
-	
 
 	TH1D* hY_MB;
 	hY_MB = (TH1D*) fIn->Get("hDphiLM_1");
@@ -69,34 +65,19 @@ void h2dLMTempFit() {
 	cout << cosine << endl;
 	const char* cos = cosine.c_str();
 
-	
-
 	TF1* fFit = new TF1("fFit", cos, -TMath::Pi()/2.0, 3.0*TMath::Pi()/2.0);
 
-	//fFit->SetParLimits(0, -10, 10);
 	fFit->SetParameter(0, 1);
 
 	for (int i = 1; i <= NH; i++) 
 	{
 		fFit->SetParName(i, paramNames[i]); // Param 1: V22 and Param 2: V33 ...
-		//fFit->SetParLimits(i, -1, 1);
 		fFit->SetParameter(i, 1.0 - (i*0.04));
 	}
 	
-	
 
-	// F factors
- 	
-	
-
-	TFile *fOut = new TFile ("output/h2dCorrFit.root", "recreate");
-	
-	hY->Write(); // HM
-
-	// 	Multiplying, subtracting, fitting and Chi2 testing
  	for (int j = 0; j < numbOfFVar; j++) 
  	{
- 	
 
  		hY_a[j] = (TH1D*) hY->Clone(); 
  	
@@ -122,6 +103,16 @@ void h2dLMTempFit() {
  		}	
  	}
 
+
+	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	//saving all necessary objs into the root file to draw fit performance
+ 	//TypeName =["Signal (0--0.1\%)", 
+ 	//"Fit","$FY_{\\mathrm{LM}} + G$", 
+ 	//"$G(1+2v_{2,2}cos(2\\Delta\\varphi))$ \n $+ FY_{\\mathrm{LM,min}}$",
+ 	//"$G(1+2v_{3,3}cos(3\\Delta\\varphi))$ \n $+ FY_{\\mathrm{LM,min}}$"];
+	TFile *fOut = new TFile ("output/h2dCorrFit.root", "recreate");
+	
+	hY->Write(); // HM
 	hY_a[indexVal]->Write();
 	// construct final fit for HM events
 	fFit_best->Write("fFit_best");
@@ -136,19 +127,6 @@ void h2dLMTempFit() {
 	
 	hY_a_G->SetMarkerStyle(24);
 	hY_a_G->Write("hY_a_G");
-
-
- 	// Saving harmonics
-	for (Int_t n=0; n<NH; n++)
-	{
-		TString formula = Form("[0]*(1 + 2*[1]*TMath::Cos(%d*x))",n+1);									
-		fitvn[n]= new TF1(Form("fit_v%d", n+1),formula, -TMath::Pi()/2.0, 3.0/2.0*TMath::Pi());			
-		vn[n] = fFit->GetParameter(n+1);																	
-		vnError[n] = fFit->GetParError(n+1);																
-		fitvn[n]->SetParameter(1,vn[n]);
-		fitvn[n]->SetParameter(0, params[0]);
-		fitvn[n]->Write();
-	}
 
 	Double_t Y_LM_min = hY_MB->GetBinContent(hY_MB->GetBinCenter(0.));
 
@@ -168,14 +146,14 @@ void h2dLMTempFit() {
 		fitvn_s[n]->Write();
 	}
 	
+
+
  	// Outputs
  	cout << "\n\n" << "Lowest Chi2: " << chi2_best << "\n" << endl;
  	cout << "PARAMETERS \n" << endl; 
  	for (int j = 0; j < 7; j++) cout << paramNames[j] << ": " << params[j] << "\n" << endl;
 	cout << "Index: " << indexVal << "\n\n" << endl;
 
-	// 	fIn->Close();
- 	//fOut->Close();
 } 
 
 /*	
