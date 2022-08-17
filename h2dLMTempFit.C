@@ -8,6 +8,7 @@
 
 
 /*
+
 	How this program works:
 
 	Program loads two data sets and finds the best fit for them using Chi2.
