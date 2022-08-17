@@ -14,9 +14,9 @@ import JPyPlotRatio
 f = ROOT.TFile("output/h2dCorrFit.root","read");
 dataTypePlotParams = [
         {'plotType':'data','color':'k','fmt':'o','markersize':5.0},
-	{'plotType':'theory','facecolor':'C0','edgecolor':'C0','alpha':0.5,'linestyle':'solid','linecolor':'C0'},
+	{'plotType':'theory','facecolor':'C0','edgecolor':'C0','alpha':0.5,'linestyle':'dashdot','linecolor':'C0'},
 	{'plotType':'data','color':'r','fmt':'s','markersize':3.0},
-        {'plotType':'theory','facecolor':'C1','edgecolor':'C1','alpha':0.5,'linestyle':'dotted','linecolor':'C1'},
+        {'plotType':'theory','facecolor':'C1','edgecolor':'C1','alpha':0.5,'linestyle':'solid','linecolor':'C1'},
         {'plotType':'theory','facecolor':'C2','edgecolor':'C2','alpha':0.5,'linestyle':'dashed','linecolor':'C2'},
         {'plotType':'theory','facecolor':'C3','edgecolor':'C3','alpha':0.5,'linestyle':'dashdot','linecolor':'C3'}
 ];

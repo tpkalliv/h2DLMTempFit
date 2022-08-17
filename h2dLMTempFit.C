@@ -8,8 +8,17 @@
 
 
 /*
+	How this program works:
+
 	Program loads two data sets and finds the best fit for them using Chi2.
 	Outputs Chi2 statistical value and also parameters from the best fit.
+	
+	Background:
+
+	G(fourier) is actually HM flow. Normalization constant is there to make it the actual HM flow.
+	So that when we add Y_LM to it, with the assumption that it has only non-flow, we can add to the amount of yield in HM
+	when we modify Y_LM non-flow yield with F factor to take into account the relative difference in the two events for non-flow.
+	This way it is possible to extract only the HM flow part by subtracting F*Y_LM (HM non-flow) from the HM yield. 
 */
 
 
@@ -19,8 +28,8 @@ Double_t Chi2(TH1D *hY_a, TF1 *fFit, Double_t *err);
 TF1* fFit_best;
 const int numbOfFVar = 100; // Number of F values
 Double_t factorF[numbOfFVar];
-double F_min = 1;
-double F_max = 4;
+double F_min = 0;
+double F_max = 3;
 TString errNames[] = {"fit_G_err","fit_V1_err","fit_V2_err ","fit_V3_err ","fit_V4_err","fit_V5_err", "hist_err"};
 Double_t err[sizeof(errNames)];
 TString paramNames[] = {"G const", "v11", "v22", "v33", "v44", "v55", "F"};
@@ -30,13 +39,14 @@ void h2dLMTempFit() {
 
 	// F factor values
 	Double_t stepsize = (F_max-F_min)/(double) 100;
-	for (int i = 0; i <= numbOfFVar; i++) factorF[i] = 1 + (i*stepsize);	
+	for (int i = 0; i <= numbOfFVar; i++) factorF[i] += (i*stepsize);
+
 
 	Double_t chi2_best;
  	Double_t factorF_best;
  	Int_t indexVal;
  	TH1D* hY_a[numbOfFVar];
-	TF1 *fitvn[NH];
+	TF1 *fitvn_s[NH];
 	TH1D* hY_a_G;
 	Double_t vn[NH];
 	Double_t vnError[NH];
@@ -50,7 +60,7 @@ void h2dLMTempFit() {
 
 	TH1D* hY_MB;
 	hY_MB = (TH1D*) fIn->Get("hDphiLM_1");
-	
+
 
 
 	//	Fit function
@@ -100,26 +110,37 @@ void h2dLMTempFit() {
 			for (int l = 1; l <= NH; l++) params[l] = TMath::Power(fFit->GetParameter(l), 2);
 			params[6] = factorF[j]; // Saving F value 
 			fFit_best = (TF1*)fFit->Clone();
+			hY_a[j]->Write();
  		}	
  	}
 
 
 	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	//saving all necessary objs into the root file to draw fit performance
- 	//TypeName =["Signal (0--0.1\%)", 
- 	//"Fit","$FY_{\\mathrm{LM}} + G$", 
+ 	//Signal (0.0-0.1%) 
+ 	//Fit F*Y_LM + G
  	//"$G(1+2v_{2,2}cos(2\\Delta\\varphi))$ \n $+ FY_{\\mathrm{LM,min}}$",
  	//"$G(1+2v_{3,3}cos(3\\Delta\\varphi))$ \n $+ FY_{\\mathrm{LM,min}}$"];
+
 	TFile *fOut = new TFile ("output/h2dCorrFit.root", "recreate");
 	
-	hY->Write(); // HM
-	hY_a[indexVal]->Write();
+	hY->Write("hDphiHM"); // Saving HM 0.-0.1% signal
+
 	// construct final fit for HM events
 	fFit_best->Write("fFit_best");
-    hY_a_G = (TH1D*) hY_MB->Clone(); 
-    hY_a_G->Scale(params[6]);
+
 	
-	for (int z = 1; z < hY_a_G->GetNbinsX(); z++) {
+    hY_a_G = (TH1D*) hY_MB->Clone(); 
+
+    // F*Y_LM
+	for (int k = 1; k <= hY_a_G->GetNbinsX(); k++) {
+			double value = hY_a_G->GetBinContent(k);
+			value = value*params[6];
+			hY_a_G->SetBinContent(k, value);
+	}
+	
+	// F*Y_LM + G
+	for (int z = 1; z <= hY_a_G->GetNbinsX(); z++) {
 
 		Double_t binV = hY_a_G->GetBinContent(z);
 		hY_a_G->SetBinContent(z, binV + params[0]);
@@ -127,19 +148,17 @@ void h2dLMTempFit() {
 	
 	hY_a_G->SetMarkerStyle(24);
 	hY_a_G->Write("hY_a_G");
-
-	Double_t Y_LM_min = hY_MB->GetBinContent(hY_MB->GetBinCenter(0.));
-
-
+	
+	Double_t Y_LM_min = hY_MB->GetMinimum(0);
 	Double_t ScaleFYmin = params[6]*Y_LM_min;
 
-	TF1* fitvn_s[NH];
 
 	// Saving harmonics
 	for (Int_t n=0; n<NH; n++)
 	{
-		TString formula = Form("[0]*(1 + 2*[1]*TMath::Cos(%d*x)) + [2]",n+1);									
-		fitvn_s[n]= new TF1(Form("fit_s_v%d", n+1),formula, -TMath::Pi()/2.0, 3.0/2.0*TMath::Pi());																		
+		TString formula = Form("[0]*(1 + 2*[1]*TMath::Cos(%d*x)) + [2]",n+1);							
+		fitvn_s[n]= new TF1(Form("fit_s_v%d", n+1),formula, -TMath::Pi()/2.0, 3.0/2.0*TMath::Pi());
+		vn[n] = fFit->GetParameter(1);																
 		fitvn_s[n]->SetParameter(1, vn[n]);
 		fitvn_s[n]->SetParameter(0, params[0]);
 		fitvn_s[n]->SetParameter(2, ScaleFYmin);
@@ -167,7 +186,7 @@ void h2dLMTempFit() {
 {
 	Double_t chi2 = 0.0;
 
-	for (int i = 1; i < hY_a->GetNbinsX(); i++) 
+	for (int i = 1; i <= hY_a->GetNbinsX(); i++) 
 	{
 		Double_t bincent = hY_a->GetXaxis()->GetBinCenter(i); // x-value for bin center
 		Double_t obs = hY_a->GetBinContent(i); // bin value
