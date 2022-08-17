@@ -10,6 +10,10 @@ sys.path.append("JPyPlotRatio");
 
 import JPyPlotRatio
 
+'''
+For figs
+'''
+
 
 f = ROOT.TFile("output/h2dCorrFit.root","read");
 dataTypePlotParams = [

@@ -7,6 +7,10 @@ import sys;
 sys.path.append("JPyPlotRatio");
 import JPyPlotRatio
 
+'''
+For figs
+'''
+
 fload = ROOT.TFile("output/h2dCorrFit.root","read"); #Opens figs
 
 dataTypePlotParams = 	[
