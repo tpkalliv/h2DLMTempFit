@@ -1,5 +1,12 @@
 #include "TFile.h"
 
+/*
+
+	This is to save 1.6-1.8 eta gap intervals from HM and LM histograms.
+	Creates a root file for fitting function.
+
+*/
+
 void twodfig() {
 
 	TFile* fIn = new TFile ("input/fout_corr_pp13TeV.root", "read");
