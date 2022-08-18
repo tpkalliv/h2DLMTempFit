@@ -1,12 +1,3 @@
-#include "TFile.h"
-
-/*
-
-	This is to save 1.6-1.8 eta gap intervals from HM and LM histograms.
-	Creates a root file for fitting function.
-
-*/
-
 void twodfig() {
 
 	TFile* fIn = new TFile ("input/fout_corr_pp13TeV.root", "read");
@@ -18,15 +9,29 @@ void twodfig() {
 
 	hLM = (TH2D*) fIn->Get("hC_0_0_0_4_11"); 
 	
-	int etalHM = hHM->GetYaxis()->FindBin(1.6);
-	int etahHM = hHM->GetYaxis()->FindBin(1.8);
+	int etalHM = hHM->GetXaxis()->FindBin(1.6);
+	int etahHM = hHM->GetXaxis()->FindBin(1.8);
+	int etalHMn = hHM->GetXaxis()->FindBin(-1.8);
+	int etahHMn = hHM->GetXaxis()->FindBin(-1.6);
+
 
 	TH1D *hDphiHM;
 	TH1D *hDphiLM;
+	TH1D *hDphiHMn;
+	TH1D *hDphiLMn;
+	TH1D *hDphiHMp;
+	TH1D *hDphiLMp;
+
+	hDphiHMn = (TH1D*) hHM->ProjectionY("hDphiHM", etalHMn, etahHMn);
+
+	hDphiLMn = (TH1D*) hLM->ProjectionY("hDphiLM", etalHMn, etahHMn);
 
 	hDphiHM = (TH1D*) hHM->ProjectionY("hDphiHM", etalHM, etahHM);
 
 	hDphiLM = (TH1D*) hLM->ProjectionY("hDphiLM", etalHM, etahHM);
+
+	hDphiHM->Add(hDphiHMn, 1.);
+	hDphiLM->Add(hDphiLMn, 1.);
 
 	TCanvas *c1 = new TCanvas ("hHM", "hHM", 1);
 	c1->Divide(2, 1);
@@ -48,7 +53,5 @@ void twodfig() {
     hDphiLM->Write("hDphiLM_1");
     hDphiHM->Write("hDphiHM_1");
     double YM_min = hDphiLM->GetBinContent(hDphiLM->GetBinCenter(0.));
-
-   
 
 }
