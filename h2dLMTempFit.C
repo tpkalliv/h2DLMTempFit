@@ -84,7 +84,7 @@ void h2dLMTempFit() {
 	for (int i = 1; i <= NH; i++) 
 	{
 		fFit->SetParName(i, paramNames[i]); 
-		fFit->SetParameter(i, TMath::Power(1.0 - (i*0.19), 2)); // Initial Vn values are Vn(delta)phi = Vn^2
+		fFit->SetParameter(i, TMath::Power(1.0 - (i*0.06),2)); // Initial Vn values are Vn(delta)phi = Vn^2
 	}
 
 
