@@ -52,6 +52,7 @@ void h2dLMTempFit() {
 	Double_t vn[NH];
 	Double_t vnError[NH];
 	Double_t params[sizeof(paramNames)];
+	TH1D* Y_periph;
 
  	// Loading data
 	TFile *fIn = new TFile ("input/fout_long_range_correlation.root", "read");
@@ -64,9 +65,9 @@ void h2dLMTempFit() {
 
 
 
-	//	Fit function
+	//	FIT FUNCTION FOR PARAMETERS (From v11 to v55)
  	string cosine = "[0]*(1";
-	for (int i=1; i<=NH; i++) {
+	for (int i = 1; i <= NH; i++) {
 		ostringstream app;
 		app << "+2*[" << i << "]*TMath::Cos(" << i << "*(x-[" << i + NH << "]))"; 
 		string append = app.str();
@@ -82,11 +83,28 @@ void h2dLMTempFit() {
 
 	for (int i = 1; i <= NH; i++) 
 	{
-		fFit->SetParName(i, paramNames[i]); // Param 1: V22 and Param 2: V33 ...
+		fFit->SetParName(i, paramNames[i]); 
 		fFit->SetParameter(i, 1.0 - (i*0.04));
 	}
-	
 
+
+	//	FIT FUNCTION FOR Y($Delta\\varphi$) FIT (Only v22 and v33)
+ 	cosine = "[0]*(1";
+	for (int i=1; i < 3; i++) 
+	{
+		ostringstream app;
+		app << "+2*[" << i << "]*TMath::Cos(" << i+1 << "*x)"; 
+		string append = app.str();
+		cosine = cosine + append;
+	}
+	cosine = cosine + ")";
+	cout << "Fit for Y($Delta\\varphi$):\n" << cosine << endl;
+	const char* fcos = cosine.c_str();
+
+	TF1* fFity = new TF1("fFity", fcos, -TMath::Pi()/2.0, 3.0*TMath::Pi()/2.0);
+
+
+	// PARAMETER EXTRACTION
  	for (int j = 0; j < numbOfFVar; j++) 
  	{
 
@@ -96,11 +114,9 @@ void h2dLMTempFit() {
  	
  		hY_a[j]->Fit("fFit", "", "", -TMath::Pi()/2.0, 3.0*TMath::Pi()/2.0);
 
- 		Double_t min_val = Chi2(hY_a[j], fFit, err); // Chi-Square testing
+ 		Double_t min_val = Chi2(hY_a[j], fFit, err); // CHI-SQUARE TEST
 
  		if (j == 0) chi2_best = min_val;
-
- 		// Saving histos and fits
  		if (min_val < chi2_best) 
  		{
  			chi2_best = min_val;
@@ -115,46 +131,50 @@ void h2dLMTempFit() {
  		}	
  	}
 
+ 	// Y($Delta\\varphi$) HIST FOR FITTING
+ 	Y_periph = (TH1D*) hY_MB->Clone();
+ 	fFity->SetParameter(0, params[0]);
+ 	for (int i = 1; i <= 2; i++) 
+ 	{
+		fFity->SetParameter(i, fFit->GetParameter(i+1)); // Feeding fFity with initial values for Eval()
+	}
+ 	for (int k = 1; k <= hY_MB->GetNbinsX(); k++) 
+ 	{
+ 		Double_t val = hY_MB->GetBinContent(k); // Taking k'th bin value
+ 		Double_t x = hY_MB->GetXaxis()->GetBinCenter(k);
+ 		Double_t paramVal = fFity->Eval(x); // Taking fit value
+ 		Double_t tot = (params[6]*val) + paramVal; // Adding all up
+ 		Y_periph->SetBinContent(k, tot);
+ 	}
+ 	hY->Fit("fFit");
 
-	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	//saving all necessary objs into the root file to draw fit performance
- 	//Signal (0.0-0.1%) 
- 	//Fit F*Y_LM + G
- 	//"$G(1+2v_{2,2}cos(2\\Delta\\varphi))$ \n $+ FY_{\\mathrm{LM,min}}$",
- 	//"$G(1+2v_{3,3}cos(3\\Delta\\varphi))$ \n $+ FY_{\\mathrm{LM,min}}$"];
 
-	TFile *fOut = new TFile ("output/h2dCorrFit.root", "recreate");
-	
-	hY->Write("hDphiHM"); // Saving HM 0.-0.1% signal
-
-	// construct final fit for HM events
-	fFit_best->Write("fFit_best");
-
-	
+ 	// F*Y_LM + G DISTRIBUTION
     hY_a_G = (TH1D*) hY_MB->Clone(); 
-
-    // F*Y_LM
 	for (int k = 1; k <= hY_a_G->GetNbinsX(); k++) {
 			double value = hY_a_G->GetBinContent(k);
 			value = value*params[6];
 			hY_a_G->SetBinContent(k, value);
 	}
-	
-	// F*Y_LM + G
 	for (int z = 1; z <= hY_a_G->GetNbinsX(); z++) {
 
 		Double_t binV = hY_a_G->GetBinContent(z);
 		hY_a_G->SetBinContent(z, binV + params[0]);
 	}
-	
 	hY_a_G->SetMarkerStyle(24);
-	hY_a_G->Write("hY_a_G");
-	
+
+
+	// SAVINGS (Signal, Fit, F*Y_LM+G)
+	TFile *fOut = new TFile ("output/h2dCorrFit.root", "recreate");
+	hY->Write("hDphiHM"); // SIGNAL
+	fFit_best->Write("fFit_best"); 
+	hY_a_G->Write("hY_a_G"); // F*Y_LM+G
+	fFit->Write("FIT"); // FIT
+
+
+	// PRODUCING V2 AND V3 HARMONICS AND SAVING 
 	Double_t Y_LM_min = hY_MB->GetMinimum(0);
 	Double_t ScaleFYmin = params[6]*Y_LM_min;
-
-
-	// Saving harmonics
 	for (Int_t n=0; n<NH; n++)
 	{
 		TString formula = Form("[0]*(1 + 2*[1]*TMath::Cos(%d*x)) + [2]",n+1);							
@@ -167,17 +187,27 @@ void h2dLMTempFit() {
 	}
 	
 
-
- 	// Outputs
+ 	// OUTPUTS
  	cout << "\n\n" << "Lowest Chi2: " << chi2_best << "\n" << endl;
  	cout << "PARAMETERS \n" << endl; 
  	for (int j = 0; j < 7; j++) cout << paramNames[j] << ": " << params[j] << "\n" << endl;
 	cout << "Index: " << indexVal << "\n\n" << endl;
+	cout << "fFity function is " << fcos << endl;
+	cout << "fFity v2 " << fFity->GetParameter(1) << endl;
+	cout << "fFity v3 " << fFity->GetParameter(2) << endl;
+} // PROGRAM ENDS HERE
 
-} 
+
+
+
+
+
+
+
+
 
 /*	
-	Chi2 Test
+	CHI2 TESTING
 
 	Parameters: hY' , fFit -> "Yield and fit function" 
 	Returns: Double_t -> "Chi2 statistic value"  
