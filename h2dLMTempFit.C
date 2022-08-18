@@ -27,7 +27,7 @@ Double_t Chi2(TH1D *hY_a, TF1 *fFit, Double_t *err);
 
 // Initializations and constants
 TF1* fFit_best;
-const int numbOfFVar = 100; // Number of F values
+const int numbOfFVar = 150; // Number of F values
 Double_t factorF[numbOfFVar];
 double F_min = 0;
 double F_max = 3;
@@ -188,10 +188,18 @@ void h2dLMTempFit() {
 
 
  	// OUTPUTS
- 	cout << "\n\n" << "Lowest Chi2: " << chi2_best << "\n" << endl;
+ 	cout << "\n\n" << "Chi2: " << chi2_best << "\n" << endl;
  	cout << "PARAMETERS \n" << endl; 
- 	for (int j = 0; j < 7; j++) cout << paramNames[j] << ": " << TMath::Sqrt(TMath::Abs(params[j])) << "\n" << endl;
-	cout << "Index: " << indexVal << "\n\n" << endl;
+ 	
+ 	for (int j = 0; j < 7; j++) {
+ 		if (params[j] < 0) {
+ 			cout << paramNames[j] << ": " << -TMath::Sqrt(TMath::Abs(params[j])) << "\n" << endl;
+ 		} else  {
+ 			cout << paramNames[j] << ": " << TMath::Sqrt(params[j]) << "\n" << endl;
+ 		}
+ 	
+ 	}
+	cout << "Best F index: " << indexVal << " out of " << numbOfFVar << "\n\n" << endl;
 	cout << "fFity function is " << fcos << endl;
 
 	
