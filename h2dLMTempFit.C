@@ -69,7 +69,7 @@ void h2dLMTempFit() {
  	string cosine = "[0]*(1";
 	for (int i = 1; i <= NH; i++) {
 		ostringstream app;
-		app << "+2*[" << i << "]*TMath::Cos(" << i << "*(x-[" << i + NH << "]))"; 
+		app << "+2*[" << i << "]*TMath::Cos(" << i << "*(x-[" << i + NH << "]))"; // Coefficients are Vn(delta)phi = Vn^2
 		string append = app.str();
 		cosine = cosine + append;
 	}
@@ -84,22 +84,21 @@ void h2dLMTempFit() {
 	for (int i = 1; i <= NH; i++) 
 	{
 		fFit->SetParName(i, paramNames[i]); 
-		fFit->SetParameter(i, 1.0 - (i*0.04));
+		fFit->SetParameter(i, TMath::Power(1.0 - (i*0.19), 2)); // Initial Vn values are Vn(delta)phi = Vn^2
 	}
 
 
 	//	FIT FUNCTION FOR Y($Delta\\varphi$) FIT (Only v22 and v33)
- 	cosine = "[0]*(1";
-	for (int i=1; i < 3; i++) 
-	{
+ 	string cosine2 = "[0]*(1";
+	for (int i=1; i < 3; i++) {
 		ostringstream app;
 		app << "+2*[" << i << "]*TMath::Cos(" << i+1 << "*x)"; 
 		string append = app.str();
-		cosine = cosine + append;
+		cosine2 = cosine2 + append;
 	}
-	cosine = cosine + ")";
-	cout << "Fit for Y($Delta\\varphi$):\n" << cosine << endl;
-	const char* fcos = cosine.c_str();
+	cosine2 = cosine2 + ")";
+	cout << "Fit for Y($Delta\\varphi$):\n" << cosine2 << endl;
+	const char* fcos = cosine2.c_str();
 
 	TF1* fFity = new TF1("fFity", fcos, -TMath::Pi()/2.0, 3.0*TMath::Pi()/2.0);
 
@@ -124,7 +123,7 @@ void h2dLMTempFit() {
 
  			params[0] = fFit->GetParameter(0);
 
-			for (int l = 1; l <= NH; l++) params[l] = TMath::Power(fFit->GetParameter(l), 2);
+			for (int l = 1; l <= NH; l++) params[l] = fFit->GetParameter(l); // Saving Vn^2 values
 			params[6] = factorF[j]; // Saving F value 
 			fFit_best = (TF1*)fFit->Clone();
 			hY_a[j]->Write();
@@ -177,24 +176,25 @@ void h2dLMTempFit() {
 	Double_t ScaleFYmin = params[6]*Y_LM_min;
 	for (Int_t n=0; n<NH; n++)
 	{
-		TString formula = Form("[0]*(1 + 2*[1]*TMath::Cos(%d*x)) + [2]",n+1);							
-		fitvn_s[n]= new TF1(Form("fit_s_v%d", n+1),formula, -TMath::Pi()/2.0, 3.0/2.0*TMath::Pi());
+		TString formula = Form("[0]*(1 + 2*[1]*TMath::Cos(%d*x)) + [2]",n+1);					
+		fitvn_s[n]= new TF1(Form("fit_s_v%d", n+1),formula, -TMath::Pi()/2.0, 3.0*TMath::Pi()/2.0);
 		vn[n] = fFit->GetParameter(1);																
 		fitvn_s[n]->SetParameter(1, vn[n]);
 		fitvn_s[n]->SetParameter(0, params[0]);
 		fitvn_s[n]->SetParameter(2, ScaleFYmin);
 		fitvn_s[n]->Write();
 	}
-	
+
+
 
  	// OUTPUTS
  	cout << "\n\n" << "Lowest Chi2: " << chi2_best << "\n" << endl;
  	cout << "PARAMETERS \n" << endl; 
- 	for (int j = 0; j < 7; j++) cout << paramNames[j] << ": " << params[j] << "\n" << endl;
+ 	for (int j = 0; j < 7; j++) cout << paramNames[j] << ": " << TMath::Sqrt(TMath::Abs(params[j])) << "\n" << endl;
 	cout << "Index: " << indexVal << "\n\n" << endl;
 	cout << "fFity function is " << fcos << endl;
-	cout << "fFity v2 " << fFity->GetParameter(1) << endl;
-	cout << "fFity v3 " << fFity->GetParameter(2) << endl;
+
+	
 } // PROGRAM ENDS HERE
 
 
