@@ -30,7 +30,7 @@ dataTypePlotParams = [
 nrow = 1;
 ncol = 1;
 xlimits = {0:(-1.4,4.5)};
-ylimits = {0:(1.75,1.975)};
+ylimits = {0:(1.7,2.0)};
 rlimits = [(0.99,1.01)];
 
 
@@ -60,7 +60,7 @@ dataDetailEta = ["$1.6 < |\\Delta\\eta| < 1.8$"];
 
 
 plot = JPyPlotRatio.JPyPlotRatio(panels=(nrow,ncol),
-	panelsize=(5,5), # change the size
+	panelsize=(10,10), # change the size
 	rowBounds=ylimits,  # for nrow
 	colBounds=xlimits,  # for ncol
 	panelLabel=plables,  # nrowxncol
@@ -69,7 +69,7 @@ plot = JPyPlotRatio.JPyPlotRatio(panels=(nrow,ncol),
 	ratioPlot=True,
 	panelLabelLoc=(0.1,0.87),panelLabelSize=10,panelLabelAlign="left",
 	legendPanel=0,
-	legendLoc=(0.26,0.65),legendSize=11,xlabel=xtitle[0],ylabel=ytitle[0]);
+	legendLoc=(0.16,0.75),legendSize=11,xlabel=xtitle[0],ylabel=ytitle[0]);
 
 
 
@@ -93,11 +93,11 @@ for d in range(0,5):
 
 f.Close();
 
-plot.GetPlot().text(0.5,0.83,"ALICE",fontsize=11);
-plot.GetPlot().text(0.5,0.79,toptitle,fontsize=11);
-plot.GetPlot().text(0.52,0.75,"$1 < p_\\mathrm{T,trig} < 2 \\,\\mathrm{GeV}/c$",fontsize=11);
-plot.GetPlot().text(0.52,0.71,"$1 < p_\\mathrm{T,assoc} < 4 \\,\\mathrm{GeV}/c$",fontsize=11);
-plot.GetPlot().text(0.2,0.51,"$1.6 < |\\Delta\\eta| < 1.8$",fontsize=10);
+plot.GetPlot().text(0.38,0.83,"ALICE",fontsize=11);
+plot.GetPlot().text(0.38,0.79,toptitle,fontsize=11);
+plot.GetPlot().text(0.38,0.75,"$1 < p_\\mathrm{T,trig} < 2 \\,\\mathrm{GeV}/c$",fontsize=11);
+plot.GetPlot().text(0.38,0.71,"$1 < p_\\mathrm{T,assoc} < 4 \\,\\mathrm{GeV}/c$",fontsize=11);
+plot.GetPlot().text(0.38,0.67,"$1.6 < |\\Delta\\eta| < 1.8$",fontsize=10);
 plot.GetRatioAxes(0).xaxis.set_ticks_position('both');
 plot.GetRatioAxes(0).yaxis.set_ticks_position('both');
 #plot.GetAxes(0).xticks(rotation=45)
