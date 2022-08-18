@@ -11,7 +11,7 @@ import JPyPlotRatio
 For figs
 '''
 
-fload = ROOT.TFile("output/h2dCorrFit.root","read"); #Opens figs
+fload = ROOT.TFile("output/h2dCorrFit.root","read"); #Opens .root file
 
 dataTypePlotParams = 	[
 							{'plotType':'data','color':'k','fmt':'o','markersize':2.0},
