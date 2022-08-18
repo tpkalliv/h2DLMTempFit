@@ -29,8 +29,8 @@ dataTypePlotParams = [
 # define panel/xaxis limits/titles
 nrow = 1;
 ncol = 1;
-#xlimits = {0:(-1.4,4.5)};
-#ylimits = {0:(0.14,1.315)};
+xlimits = {0:(-1.4,4.5)};
+ylimits = {0:(1.75,1.975)};
 rlimits = [(0.99,1.01)];
 
 
@@ -61,8 +61,8 @@ dataDetailEta = ["$1.6 < |\\Delta\\eta| < 1.8$"];
 
 plot = JPyPlotRatio.JPyPlotRatio(panels=(nrow,ncol),
 	panelsize=(5,5), # change the size
-	#rowBounds=ylimits,  # for nrow
-	#colBounds=xlimits,  # for ncol
+	rowBounds=ylimits,  # for nrow
+	colBounds=xlimits,  # for ncol
 	panelLabel=plables,  # nrowxncol
 	ratioBounds=rlimits,# for nrow
 #	disableRatio=[0],
