@@ -26,22 +26,21 @@
 Double_t Chi2(TH1D *hY_a, TF1 *fFit, Double_t *err);
 
 // Initializations and constants
-TF1* fFit_best;
-const int numbOfFVar = 150; // Number of F values
+
+const int numbOfFVar = 10; // Number of F values
 Double_t factorF[numbOfFVar];
-double F_min = 0;
-double F_max = 3;
-TString errNames[] = {"fit_G_err","fit_V1_err","fit_V2_err ","fit_V3_err ","fit_V4_err","fit_V5_err", "hist_err"};
-Double_t err[sizeof(errNames)];
-TString paramNames[] = {"G const", "v11", "v22", "v33", "v44", "v55", "F"};
-Int_t NH = 5;
+double F_min = 0.1;
+double F_max = 2;
+TString errNames[] = {"fit_G_err","fit_V2_err ","fit_V3_err "};
+TString paramNames[] = {"G", "v22", "v33"};
+Int_t NH = 2; // 2-3
 
 void h2dLMTempFit() {
 
 	// F factor values
 	Double_t stepsize = (F_max-F_min)/(double) 100;
 	for (int i = 0; i <= numbOfFVar; i++) factorF[i] += (i*stepsize);
-
+	cout << Form("%.2f<F<%.2f, NF= %d, step=%.2f",F_min,F_max,numbOfFVar,stepsize) << endl;
 
 	Double_t chi2_best;
  	Double_t factorF_best;
@@ -53,7 +52,7 @@ void h2dLMTempFit() {
 	Double_t vnError[NH];
 	Double_t params[sizeof(paramNames)];
 	TH1D* Y_periph;
-
+	Double_t err[sizeof(errNames)];
  	// Loading data
 	TFile *fIn = new TFile ("input/fout_long_range_correlation.root", "read");
 	
@@ -67,51 +66,40 @@ void h2dLMTempFit() {
 
 	//	FIT FUNCTION FOR PARAMETERS (From v11 to v55)
  	string cosine = "[0]*(1";
-	for (int i = 1; i <= NH; i++) {
+	for (int i = 2; i <= NH; i++) {
 		ostringstream app;
-		app << "+2*[" << i << "]*TMath::Cos(" << i << "*(x-[" << i + NH << "]))"; // Coefficients are Vn(delta)phi = Vn^2
+		app << "+2*[" << i << "]*TMath::Cos(" << i << "*x)"; // Coefficients are Vn(delta)phi = Vn^2
 		string append = app.str();
 		cosine = cosine + append;
 	}
 	cosine = cosine + ")";
 	cout << cosine << endl;
 	const char* cos = cosine.c_str();
+  
 
 	TF1* fFit = new TF1("fFit", cos, -TMath::Pi()/2.0, 3.0*TMath::Pi()/2.0);
 
 	fFit->SetParameter(0, 1);
 
+	for (int i = 0; i <= NH; i++) fFit->SetParName(i, paramNames[i]); 
 	for (int i = 1; i <= NH; i++) 
 	{
-		fFit->SetParName(i, paramNames[i]); 
 		fFit->SetParameter(i, TMath::Power(1.0 - (i*0.06),2)); // Initial Vn values are Vn(delta)phi = Vn^2
 	}
 
-
-	//	FIT FUNCTION FOR Y($Delta\\varphi$) FIT (Only v22 and v33)
- 	string cosine2 = "[0]*(1";
-	for (int i=1; i < 3; i++) {
-		ostringstream app;
-		app << "+2*[" << i << "]*TMath::Cos(" << i+1 << "*x)"; 
-		string append = app.str();
-		cosine2 = cosine2 + append;
-	}
-	cosine2 = cosine2 + ")";
-	cout << "Fit for Y($Delta\\varphi$):\n" << cosine2 << endl;
-	const char* fcos = cosine2.c_str();
-
-	TF1* fFity = new TF1("fFity", fcos, -TMath::Pi()/2.0, 3.0*TMath::Pi()/2.0);
-
+	// For scaling to draw
+	TF1* fFity = new TF1("fFity", cos, -TMath::Pi()/2.0, 3.0*TMath::Pi()/2.0);
+	TF1* fFit_best;
 
 	// PARAMETER EXTRACTION
  	for (int j = 0; j < numbOfFVar; j++) 
  	{
-
+ 		cout << Form("F[%d] = %.2f",j,factorF[j]) << endl;
  		hY_a[j] = (TH1D*) hY->Clone(); 
  	
  		hY_a[j]->Add(hY_MB, -factorF[j]);
  	
- 		hY_a[j]->Fit("fFit", "", "", -TMath::Pi()/2.0, 3.0*TMath::Pi()/2.0);
+ 		hY_a[j]->Fit("fFit", "", "Q", -TMath::Pi()/2.0, 3.0*TMath::Pi()/2.0);
 
  		Double_t min_val = Chi2(hY_a[j], fFit, err); // CHI-SQUARE TEST
 
@@ -200,7 +188,7 @@ void h2dLMTempFit() {
  	
  	}
 	cout << "Best F index: " << indexVal << " out of " << numbOfFVar << "\n\n" << endl;
-	cout << "fFity function is " << fcos << endl;
+	cout << "fFity function is " << cos << endl;
 
 	
 } // PROGRAM ENDS HERE
