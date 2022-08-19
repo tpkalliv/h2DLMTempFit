@@ -27,10 +27,10 @@ Double_t Chi2(TH1D *hY_a, TF1 *fFit, Double_t *err);
 
 // Initializations and constants
 
-const int numbOfFVar = 10; // Number of F values
+const int numbOfFVar = 100; // Number of F values
 Double_t factorF[numbOfFVar];
 double F_min = 0.1;
-double F_max = 2;
+double F_max = 3;
 TString errNames[] = {"fit_G_err","fit_V2_err ","fit_V3_err "};
 TString paramNames[] = {"G", "v22", "v33"};
 Int_t NH = 2; // 2-3
@@ -63,7 +63,7 @@ void h2dLMTempFit() {
 
 
 
-	//	FIT FUNCTION FOR PARAMETERS (From v11 to v55)
+	//	FIT FUNCTION FOR PARAMETERS 
  	string cosine = "[0]*(1";
 	for (int i = 1; i <= NH; i++) {
 		ostringstream app;
@@ -83,7 +83,7 @@ void h2dLMTempFit() {
 	for (int i = 0; i <= NH; i++) fFit->SetParName(i, paramNames[i]); 
 	for (int i = 1; i <= NH; i++) 
 	{
-		fFit->SetParameter(i, TMath::Power(1.0 - (i*0.06),2)); // Initial Vn values are Vn(delta)phi = Vn^2
+		fFit->SetParameter(i, TMath::Power(1.0 - (i*0.19),2)); // Initial Vn values are Vn(delta)phi = Vn^2
 	}
 
 	// For scaling to draw
@@ -114,16 +114,18 @@ void h2dLMTempFit() {
 
 			for (int l = 1; l <= NH; l++) params[l] = fFit->GetParameter(l); // Saving Vn^2 values
 			fFit_best = (TF1*)fFit->Clone();
-			hY_a[j]->Write();
+			
  		}	
  	}
+
+
 
  	// Y($Delta\\varphi$) HIST FOR FITTING
  	Y_periph = (TH1D*) hY_MB->Clone();
  	fFity->SetParameter(0, params[0]);
  	for (int i = 1; i <= 2; i++) 
  	{
-		fFity->SetParameter(i, fFit->GetParameter(i)); // Feeding fFity with initial values for Eval()
+		fFity->SetParameter(i, params[i]); // Feeding fFity with initial values for Eval()
 	}
  	for (int k = 1; k <= hY_MB->GetNbinsX(); k++) 
  	{
@@ -131,9 +133,9 @@ void h2dLMTempFit() {
  		Double_t x = hY_MB->GetXaxis()->GetBinCenter(k);
  		Double_t paramVal = fFity->Eval(x); // Taking fit value
  		Double_t tot = (factorF[indexVal]*val) + paramVal; // Adding all up
- 		Y_periph->SetBinContent(k, tot);
+ 		Y_periph->SetBinContent(k, tot); // Y_hist = G(v2+v3)+F*Y_LM
  	}
- 	hY->Fit("fFit");
+ 	Y_periph->Fit("fFit"); // Fitting fFity on the Y_hist
 
 
  	// F*Y_LM + G DISTRIBUTION
@@ -153,9 +155,11 @@ void h2dLMTempFit() {
 
 	// SAVINGS (Signal, Fit, F*Y_LM+G)
 	hY->Write("hDphiHM"); // SIGNAL
-	fFit_best->Write("fFit_best"); 
+	hY_a[indexVal]->Write();
+	fFit_best->Write("Best_fit");
+	fFity->Write("FIT"); 
 	hY_a_G->Write("hY_a_G"); // F*Y_LM+G
-	fFit->Write("FIT"); // FIT
+
 
 
 	// PRODUCING V2 AND V3 HARMONICS AND SAVING 
@@ -163,7 +167,7 @@ void h2dLMTempFit() {
 	Double_t ScaleFYmin = factorF[indexVal]*Y_LM_min;
 	for (Int_t n=0; n<=NH; n++)
 	{
-		TString formula = Form("[0]*(1 + 2*[1]*TMath::Cos(%d*x)) + [2]",n+1);					
+		TString formula = Form("[0]*(1 + 2*[1]*TMath::Cos(%d*x)) + [2]", n+1);					
 		fitvn_s[n]= new TF1(Form("fit_s_v%d", n+1),formula, -TMath::Pi()/2.0, 3.0*TMath::Pi()/2.0);
 		vn[n] = fFit->GetParameter(1);																
 		fitvn_s[n]->SetParameter(1, vn[n]);
@@ -223,18 +227,10 @@ void h2dLMTempFit() {
 		Double_t total_err;
 
 		// Calculating errors 
-		for (int j = 0; j < sizeof(err); j++) 
+		for (int j = 0; j <= sizeof(err); j++) 
 		{
-			if (j != sizeof(err)-1) // Last err, which is histo
-			{
-				err[j] = TMath::Power(hY_a->GetBinError(i), 2);
-				total_err = total_err + err[j];
-			} else 
-			{
-				err[j] = TMath::Power(fFit->GetParError(j), 2);
-				total_err = total_err + err[j];
-			} 
-				
+			err[j] = TMath::Power(fFit->GetParError(j), 2); // ([0]err)^2 + ([1]err)^2 + ([2]err)^2
+			total_err = total_err + err[j];		
 		}
 
 		Double_t val = obs - exp;

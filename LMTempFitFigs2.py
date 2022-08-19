@@ -29,12 +29,12 @@ dataTypePlotParams = [
 # define panel/xaxis limits/titles
 nrow = 1;
 ncol = 1;
-xlimits = {0:(-1.4,4.5)};
-ylimits = {0:(1.7,2.0)};
+#xlimits = {0:(-1.4,4.5)};
+#ylimits = {0:(1.7,2.0)};
 rlimits = [(0.99,1.01)];
 
 
-histnames = ["hDphiHM","FIT","hY_a_G", "fit_s_v2","fit_s_v3" ];
+histnames = ["hDphiHM;1","FIT","hY_a_G", "fit_s_v2","fit_s_v3" ];
 
 # add here the histogram names for each pad
 # add labels for each pad
@@ -61,8 +61,8 @@ dataDetailEta = ["$1.6 < |\\Delta\\eta| < 1.8$"];
 
 plot = JPyPlotRatio.JPyPlotRatio(panels=(nrow,ncol),
 	panelsize=(10,10), # change the size
-	rowBounds=ylimits,  # for nrow
-	colBounds=xlimits,  # for ncol
+	#rowBounds=ylimits,  # for nrow
+	#colBounds=xlimits,  # for ncol
 	panelLabel=plables,  # nrowxncol
 	ratioBounds=rlimits,# for nrow
 #	disableRatio=[0],
