@@ -34,7 +34,7 @@ ncol = 1;
 rlimits = [(0.99,1.01)];
 
 
-histnames = ["hDphiHM;1","FIT","hY_a_G", "fit_s_v2","fit_s_v3" ];
+histnames = ["hDphiHM","FIT","hY_a_G", "fit_s_v2","fit_s_v3" ];
 
 # add here the histogram names for each pad
 # add labels for each pad
