@@ -19,12 +19,12 @@ void twodfig() {
 
 	hDphiHM = (TH1D*) hHM->ProjectionY("hDphiHM", hHM->GetXaxis()->FindBin(-etahigh), hHM->GetXaxis()->FindBin(-etalow));
 	hDphiHMp  = (TH1D*) hHM->ProjectionY("hDphiHMp",  hHM->GetXaxis()->FindBin(etalow), hHM->GetXaxis()->FindBin(etahigh));
-	//hDphiHM->Add(hDphiHMp, 1.);
+	hDphiHM->Add(hDphiHMp, 1.);
 
 	hDphiLM = (TH1D*) hLM->ProjectionY("hDphiLM", hLM->GetXaxis()->FindBin(-etahigh), hLM->GetXaxis()->FindBin(-etalow));
 	hDphiLMp  = (TH1D*) hLM->ProjectionY("hDphiLMp",  hLM->GetXaxis()->FindBin(etalow), hLM->GetXaxis()->FindBin(etahigh));
 
-	//hDphiLM->Add(hDphiLMp, 1.);
+	hDphiLM->Add(hDphiLMp, 1.);
 
 	TCanvas *c1 = new TCanvas ("hHM", "hHM", 1);
 	c1->Divide(2, 1);
@@ -46,6 +46,10 @@ void twodfig() {
 
 	c3->cd(1);hDphiHMp->Draw();
 	c3->cd(2);hDphiLMp->Draw();
+
+	c1->SaveAs("figs/QA_2D.png");
+	c2->SaveAs("figs/QA_alllongrange.png");
+	c1->SaveAs("figs/QA_plusetarange.png");
 
 	TFile* fOut = new TFile ("input/fout_long_range_correlation.root", "recreate");
 
