@@ -34,7 +34,7 @@ ylimits = {0:(1.7,2.0)};
 rlimits = [(0.99,1.01)];
 
 
-histnames = ["hDphiHM","FIT","hY_a_G", "fit_s_v2","fit_s_v3" ];
+histnames = ["hDphiHM","hFitTotal","hY_a_G", "fit_s_v2","fit_s_v3" ];
 
 # add here the histogram names for each pad
 # add labels for each pad
@@ -61,7 +61,7 @@ dataDetailEta = ["$1.6 < |\\Delta\\eta| < 1.8$"];
 
 plot = JPyPlotRatio.JPyPlotRatio(panels=(nrow,ncol),
 	panelsize=(10,10), # change the size
-	rowBounds=ylimits,  # for nrow
+	#rowBounds=ylimits,  # for nrow
 	colBounds=xlimits,  # for ncol
 	panelLabel=plables,  # nrowxncol
 	ratioBounds=rlimits,# for nrow
@@ -96,7 +96,7 @@ f.Close();
 plot.GetPlot().text(0.38,0.83,"ALICE",fontsize=11);
 plot.GetPlot().text(0.38,0.79,toptitle,fontsize=11);
 plot.GetPlot().text(0.38,0.75,"$1 < p_\\mathrm{T,trig} < 2 \\,\\mathrm{GeV}/c$",fontsize=11);
-plot.GetPlot().text(0.38,0.71,"$1 < p_\\mathrm{T,assoc} < 4 \\,\\mathrm{GeV}/c$",fontsize=11);
+plot.GetPlot().text(0.38,0.71,"$1 < p_\\mathrm{T,assoc} < 2 \\,\\mathrm{GeV}/c$",fontsize=11);
 plot.GetPlot().text(0.38,0.67,"$1.6 < |\\Delta\\eta| < 1.8$",fontsize=10);
 plot.GetRatioAxes(0).xaxis.set_ticks_position('both');
 plot.GetRatioAxes(0).yaxis.set_ticks_position('both');
